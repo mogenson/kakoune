@@ -486,36 +486,27 @@ bool InsertCompleter::setup_ifn()
     if (not m_completions.is_valid())
     {
         auto& completers = m_options["completers"].get<InsertCompleterDescList>();
+        bool res = false;
         for (auto& completer : completers)
         {
-            if (completer.mode == InsertCompleterDesc::Filename and
-                try_complete(complete_filename<true>))
-                return true;
-            if (completer.mode == InsertCompleterDesc::Option and
-                try_complete([&](const SelectionList& sels,
-                                 const OptionManager& options,
-                                 const FaceRegistry& faces) {
-                   return complete_option(sels, options, faces, *completer.param);
-                }))
-                return true;
-            if (completer.mode == InsertCompleterDesc::Word and
-                *completer.param == "buffer" and
-                try_complete(complete_word<false>))
-                return true;
-            if (completer.mode == InsertCompleterDesc::Word and
-                *completer.param == "all" and
-                try_complete(complete_word<true>))
-                return true;
-            if (completer.mode == InsertCompleterDesc::Line and
-                *completer.param == "buffer" and
-                try_complete(complete_line<false>))
-                return true;
-            if (completer.mode == InsertCompleterDesc::Line and
-                *completer.param == "all" and
-                try_complete(complete_line<true>))
-                return true;
+            if (completer.mode == InsertCompleterDesc::Filename)
+                res or_eq try_complete(complete_filename<true>);
+            if (completer.mode == InsertCompleterDesc::Option)
+                res or_eq try_complete([&](const SelectionList& sels,
+                                           const OptionManager& options,
+                                           const FaceRegistry& faces) {
+                    return complete_option(sels, options, faces, *completer.param);
+                });
+            if (completer.mode == InsertCompleterDesc::Word and *completer.param == "buffer")
+                res or_eq try_complete(complete_word<false>);
+            if (completer.mode == InsertCompleterDesc::Word and *completer.param == "all")
+                res or_eq try_complete(complete_word<true>);
+            if (completer.mode == InsertCompleterDesc::Line and *completer.param == "buffer")
+                res or_eq try_complete(complete_line<false>);
+            if (completer.mode == InsertCompleterDesc::Line and *completer.param == "all")
+                res or_eq try_complete(complete_line<true>);
         }
-        return false;
+        return res;
     }
     return true;
 }
